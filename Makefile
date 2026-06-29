@@ -8,7 +8,7 @@ build:
 	$(CC) src/mrkd.c -o build/mrkd
 
 test_run:
-	./build/mrkd "test"
+	./build/mrkd 
 
 clean:
 	rm -r build
