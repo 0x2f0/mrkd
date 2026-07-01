@@ -1,5 +1,13 @@
-#ifndef MRKD_H
-#define MRKD_H
+#pragma once
+#ifdef _WIN32
+	#define strcasecmp _stricmp
+#endif
+
+// Best practice: Define a macro for reusability
+#define len(x) (sizeof(x) / sizeof((x)[0]))
+
+// gap between flag and description.
+#define HELP_GAP 30
 
 enum SOURCE_TYPE { STR, FILE_PATH, DIR_PATH };
 enum OUTPUT_FORMAT { HTML, AST };
@@ -20,5 +28,3 @@ typedef struct {
 
 config parse_args(int arg_length, char *argv[]);
 void print_help(char *program_name);
-
-#endif

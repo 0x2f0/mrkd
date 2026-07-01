@@ -1,14 +1,16 @@
 #include "mrkd.h"
+#include "compat.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 int main(int arg_len, char *argv[]) {
   config config = parse_args(arg_len, argv);
-  printf("Parsed Args\n .exit: %d\n .source = %s\n .source_type = %d\n "
-         ".verbose = %d\n .dir_depth = %d\n .output_format = %d\n",
-         config.exit, config.source, config.source_type, config.verbose,
-         config.dir_depth, config.output_format);
+
+  //  printf("Parsed Args\n .exit: %d\n .source = %s\n .source_type = %d\n "
+  //         ".verbose = %d\n .dir_depth = %d\n .output_format = %d\n",
+  //         config.exit, config.source, config.source_type, config.verbose,
+  //         config.dir_depth, config.output_format);
 
   if (config.exit)
     return 0;
@@ -41,6 +43,15 @@ config parse_args(int arg_length, char *argv[]) {
     }
 
     if (strcmp(chunk, "-s") == 0 || strcmp(chunk, "--source") == 0) {
+      if (i + 2 > arg_length) {
+        printf("No <path> provided for %s flag.\n\n", chunk);
+        printf("CORRECT SIGNATURE:\n");
+        printf("%*s %s\n", -HELP_GAP, "-s, --source <path>",
+               "String, file_path, dir_path to parse");
+        config.exit = 1;
+        return config;
+      }
+
       char *path = argv[i + 1];
       i++;
       config.source = path;
@@ -49,6 +60,16 @@ config parse_args(int arg_length, char *argv[]) {
     }
 
     if (strcmp(chunk, "-d") == 0 || strcmp(chunk, "--dir-depth") == 0) {
+      if (i + 2 > arg_length) {
+        printf("No <depth> provided for %s flag.\n\n", chunk);
+        printf("CORRECT SIGNATURE:\n");
+        printf("%*s %s\n", -HELP_GAP, "-d, --dir-depth <depth>",
+               "Depth of dir to search upto when source is "
+               "dir_path defaults to 1");
+        config.exit = 1;
+        return config;
+      }
+
       int depth = atoi(argv[i + 1]);
       i++;
       config.dir_depth = depth;
@@ -61,15 +82,25 @@ config parse_args(int arg_length, char *argv[]) {
     }
 
     if (strcmp(chunk, "-o") == 0 || strcmp(chunk, "--output-format") == 0) {
+      if (i + 2 > arg_length) {
+        printf("No <format> provided for %s flag.\n\n", chunk);
+        printf("CORRECT SIGNATURE:\n");
+        printf("%*s %s\n", -HELP_GAP, "-o, --output-format <format>",
+               "Specify output format either 'AST' or "
+               "'HTML' defaults to 'HTML'");
+        config.exit = 1;
+        return config;
+      }
+
       char *output_format = argv[i + 1];
 
-      if (strcmp(output_format, "HTML") == 0) {
+      if (strcasecmp(output_format, "HTML") == 0) {
         config.output_format = HTML;
         i++;
         continue;
       }
 
-      if (strcmp(output_format, "AST") == 0) {
+      if (strcasecmp(output_format, "AST") == 0) {
         config.output_format = AST;
         i++;
         continue;
@@ -93,18 +124,17 @@ config parse_args(int arg_length, char *argv[]) {
 }
 
 void print_help(char *program_name) {
-  int gap = 30;
-
   printf("Usage: %s [OPTIONS] [VALUE]\n\n", program_name);
   printf("Options: \n");
-  printf("%*s %s\n", -gap, "-h, --help ", "Show this help message");
-  printf("%*s %s\n", -gap, "-s, --source <path>",
+  printf("%*s %s\n", -HELP_GAP, "-h, --help ", "Show this help message");
+  printf("%*s %s\n", -HELP_GAP, "-s, --source <path>",
          "String, file_path, dir_path to parse");
-  printf("%*s %s\n", -gap, "-v, --verbose", "Prints every step in verbosly");
-  printf("%*s %s\n", -gap, "-d, --dir-depth <depth>",
+  printf("%*s %s\n", -HELP_GAP, "-v, --verbose",
+         "Prints every step in verbosly");
+  printf("%*s %s\n", -HELP_GAP, "-d, --dir-depth <depth>",
          "Depth of dir to search upto when source is "
          "dir_path defaults to 1");
-  printf("%*s %s\n", -gap, "-o, --output-format <format>",
+  printf("%*s %s\n", -HELP_GAP, "-o, --output-format <format>",
          "Specify output format either 'AST' or "
          "'HTML' defaults to 'HTML'");
 }
