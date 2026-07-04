@@ -3,14 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 int main(int arg_len, char *argv[]) {
   config config = parse_args(arg_len, argv);
-
-  //  printf("Parsed Args\n .exit: %d\n .source = %s\n .source_type = %d\n "
-  //         ".verbose = %d\n .dir_depth = %d\n .output_format = %d\n",
-  //         config.exit, config.source, config.source_type, config.verbose,
-  //         config.dir_depth, config.output_format);
 
   if (config.exit)
     return 0;
@@ -19,8 +15,7 @@ int main(int arg_len, char *argv[]) {
 }
 
 config parse_args(int arg_length, char *argv[]) {
-  config config = {.source = NULL,
-                   .source_type = STR,
+  config config = {.source = {},
                    .verbose = 0,
                    .dir_depth = 1,
                    .output_format = HTML,
@@ -54,8 +49,10 @@ config parse_args(int arg_length, char *argv[]) {
 
       char *path = argv[i + 1];
       i++;
-      config.source = path;
-      // TODO: check the source type
+
+      source parsed_source = get_source(path);
+			// TODO: append this source into the source array.
+			// Make the source array dynamic
       continue;
     }
 
@@ -137,4 +134,23 @@ void print_help(char *program_name) {
   printf("%*s %s\n", -HELP_GAP, "-o, --output-format <format>",
          "Specify output format either 'AST' or "
          "'HTML' defaults to 'HTML'");
+}
+
+// TODO: FIX the cases where file can be wrong or file path might be wrong.
+source get_source_type(char *path) {
+  struct stat path_stat;
+  source path_source = {.source = path};
+
+  if (stat(path, &path_stat)) {
+    path_source.source_type = STR;
+    return path_source;
+  }
+
+  if (S_ISDIR(path_stat.st_mode)) {
+    path_source.source_type = DIR_PATH;
+    return path_source;
+  }
+
+  path_source.source_type = FILE_PATH;
+  return path_source;
 }

@@ -1,6 +1,6 @@
 #pragma once
 #ifdef _WIN32
-	#define strcasecmp _stricmp
+#define strcasecmp _stricmp
 #endif
 
 // Best practice: Define a macro for reusability
@@ -16,6 +16,9 @@ typedef struct {
   // can be a file, folder or just raw string
   char *source;
   enum SOURCE_TYPE source_type;
+} source;
+
+typedef struct {
   int verbose;
   // depth of dir to search for when source_type is DIR_PATH defaults to 1
   int dir_depth;
@@ -24,7 +27,11 @@ typedef struct {
 
   // to exit the program.
   int exit;
+  source source[];
 } config;
 
 config parse_args(int arg_length, char *argv[]);
 void print_help(char *program_name);
+
+// provides the source of the given path.
+source get_source(char *path);
