@@ -53,6 +53,7 @@ config parse_args(int arg_length, char *argv[]) {
       source parsed_source = get_source(path);
 			// TODO: append this source into the source array.
 			// Make the source array dynamic
+			da_append(config.source, parsed_source);
       continue;
     }
 
@@ -137,7 +138,7 @@ void print_help(char *program_name) {
 }
 
 // TODO: FIX the cases where file can be wrong or file path might be wrong.
-source get_source_type(char *path) {
+source get_source(char *path) {
   struct stat path_stat;
   source path_source = {.source = path};
 
