@@ -11,7 +11,17 @@ int main(int arg_len, char *argv[]) {
   if (config.exit)
     return 0;
 
+  parse(config);
+
   return 0;
+}
+
+void parse(config config) {
+  for (int i = 0; i < config.source.count; i++) {
+    source source = config.source.items[i];
+    printf("source[%d] = %s", i, source.source);
+  }
+  return;
 }
 
 config parse_args(int arg_length, char *argv[]) {
@@ -51,9 +61,7 @@ config parse_args(int arg_length, char *argv[]) {
       i++;
 
       source parsed_source = get_source(path);
-			// TODO: append this source into the source array.
-			// Make the source array dynamic
-			da_append(config.source, parsed_source);
+      da_append(config.source, parsed_source);
       continue;
     }
 
@@ -137,12 +145,12 @@ void print_help(char *program_name) {
          "'HTML' defaults to 'HTML'");
 }
 
-// TODO: FIX the cases where file can be wrong or file path might be wrong.
+// treats path as string if it doesnot exit.
 source get_source(char *path) {
   struct stat path_stat;
   source path_source = {.source = path};
 
-  if (stat(path, &path_stat)) {
+  if (stat(path, &path_stat) != 0) {
     path_source.source_type = STR;
     return path_source;
   }

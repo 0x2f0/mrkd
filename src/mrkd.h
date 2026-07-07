@@ -1,5 +1,6 @@
 #pragma once
 #include <stddef.h>
+#include <stdlib.h>
 #ifdef _WIN32
 #define strcasecmp _stricmp
 #endif
@@ -26,7 +27,15 @@
         da_struct.capacity = 256;                                              \
       else                                                                     \
         da_struct.capacity *= 2;                                               \
-      realloc(da_struct.items, da_struct.capacity * sizeof(*da_struct.items)); \
+      da_struct.items = realloc(                                               \
+          da_struct.items, da_struct.capacity * sizeof(*da_struct.items));     \
+      if (da_struct.items == NULL) {                                           \
+        {                                                                      \
+          fprintf(stderr, "ERROR: While resizing dynamic array");              \
+          free(da_struct.items);                                               \
+          exit(1);                                                             \
+        }                                                                      \
+      }                                                                        \
     }                                                                          \
     da_struct.items[da_struct.count++] = item;                                 \
   } while (0)
@@ -54,7 +63,11 @@ typedef struct {
   source_array source;
 } config;
 
+// parse the command line args
 config parse_args(int arg_length, char *argv[]);
+
+// parse the actual markdown content using the parsed args
+void parse(config config);
 void print_help(char *program_name);
 
 // provides the source of the given path.
