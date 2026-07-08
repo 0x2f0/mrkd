@@ -19,6 +19,13 @@
     size_t capacity;                                                           \
   } name;
 
+#define da_init(type, name)                                                    \
+  type name = {                                                                \
+      .count = 0,                                                              \
+      .capacity = 0,                                                           \
+      .items = NULL,                                                           \
+  }
+
 // defines a way to add element to the dynamic array
 #define da_append(da_struct, item)                                             \
   do {                                                                         \
@@ -72,3 +79,13 @@ void print_help(char *program_name);
 
 // provides the source of the given path.
 source get_source(char *path);
+
+typedef struct {
+  // actual file or string content
+  char *value;
+  char *name;
+} source_value;
+
+da_struct(source_value, source_value_array);
+source_value_array get_source_value(enum SOURCE_TYPE source_type, char *source,
+                                    int depth);

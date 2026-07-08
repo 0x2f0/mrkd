@@ -1,8 +1,10 @@
 #include "mrkd.h"
 #include "compat.h"
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <sys/stat.h>
 
 int main(int arg_len, char *argv[]) {
@@ -17,15 +19,93 @@ int main(int arg_len, char *argv[]) {
 }
 
 void parse(config config) {
-  for (int i = 0; i < config.source.count; i++) {
+  da_init(source_value_array, sva);
+
+  for (size_t i = 0; i < config.source.count; i++) {
     source source = config.source.items[i];
-    printf("source[%d] = %s", i, source.source);
+    source_value_array i_sva =
+        get_source_value(source.source_type, source.source, config.dir_depth);
+
+    for (size_t i = 0; i < i_sva.count; i++)
+      da_append(sva, i_sva.items[i]);
   }
+
+  for (size_t i = 0; i < sva.count; i++) {
+    source_value sv = sva.items[i];
+    printf("\nSource Name: %s\nValue:\n%s", sv.name, sv.value);
+  }
+
   return;
+};
+
+source_value_array get_source_value(enum SOURCE_TYPE source_type, char *source,
+                                    int depth) {
+  da_init(source_value_array, sva);
+
+  switch (source_type) {
+  case STR: {
+    source_value sv = {.name = NULL, .value = source};
+    da_append(sva, sv);
+    break;
+  }
+
+  case FILE_PATH: {
+    source_value sv = {.name = source, .value = NULL};
+    FILE *file = fopen(source, "rb");
+    if (file == NULL) {
+      fprintf(stderr,
+              "ERROR: Something went wrong while reading source file [%s]\n",
+              source);
+      fclose(file);
+      exit(1);
+    }
+    fseek(file, 0, SEEK_END);
+    long file_size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    sv.value = malloc(file_size + 1);
+    if (sv.value == NULL) {
+      fprintf(
+          stderr,
+          "ERROR: Something went wrong while allocating Memory to store the "
+          "read source file [%s]\n",
+          source);
+      fclose(file);
+      exit(1);
+    }
+
+    size_t bytes_read = fread(sv.value, 1, file_size, file);
+    if (ferror(file)) {
+      fprintf(stderr,
+              "ERROR: Something went wrong while reading source file [%s]\n",
+              source);
+      free(sv.value);
+      fclose(file);
+      exit(1);
+    }
+
+    sv.value[bytes_read] = '\0';
+
+    da_append(sva, sv);
+    fclose(file);
+    break;
+  }
+
+  case DIR_PATH:
+    break;
+
+  default:
+    fprintf(stderr, "ERROR: Something went wrong while parsing source_type");
+    exit(1);
+    break;
+  };
+
+  return sva;
 }
 
 config parse_args(int arg_length, char *argv[]) {
-  config config = {.source = {},
+  da_init(source_array, init_source);
+  config config = {.source = init_source,
                    .verbose = 0,
                    .dir_depth = 1,
                    .output_format = HTML,

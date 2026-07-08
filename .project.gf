@@ -1,4 +1,4 @@
 [executable]
 path=./build/mrkd.debug
-arguments=-s test
+arguments=-s README.md
 ask_directory=1
